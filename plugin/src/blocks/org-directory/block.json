@@ -1,0 +1,34 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "take-action/org-directory",
+	"version": "1.0.0",
+	"title": "Organization Directory",
+	"category": "widgets",
+	"icon": "groups",
+	"description": "Displays a filterable directory of local organizations.",
+	"keywords": [ "organizations", "directory", "groups", "activism" ],
+	"textdomain": "take-action-toolkit",
+	"supports": {
+		"html": false,
+		"interactivity": true,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"attributes": {
+		"showFilter": {
+			"type": "boolean",
+			"default": true
+		},
+		"columns": {
+			"type": "number",
+			"default": 2
+		}
+	},
+	"editorScript": "file:./index.js",
+	"viewScriptModule": "file:./view.js",
+	"render": "file:./render.php",
+	"style": "file:./style-index.css"
+}

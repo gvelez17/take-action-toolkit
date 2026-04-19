@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "take-action/business-directory",
+	"version": "1.0.0",
+	"title": "Business Directory",
+	"category": "widgets",
+	"icon": "store",
+	"description": "Displays a directory of aligned local businesses.",
+	"keywords": [ "businesses", "directory", "local", "shops" ],
+	"textdomain": "take-action-toolkit",
+	"supports": {
+		"html": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"attributes": {
+		"columns": {
+			"type": "number",
+			"default": 3
+		}
+	},
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php",
+	"style": "file:./style-index.css"
+}

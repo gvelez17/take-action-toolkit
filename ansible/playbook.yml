@@ -1,0 +1,310 @@
+---
+# Take Action Toolkit — VM Setup Playbook
+#
+# Sets up a fresh Ubuntu VM with WordPress, the Take Action plugin and theme,
+# and Caddy as the reverse proxy with automatic SSL.
+#
+# Usage:
+#   ansible-playbook -i inventory.yml playbook.yml
+#
+# Prerequisites:
+#   - Fresh Ubuntu 22.04+ VM with SSH access
+#   - DNS pointing to the VM's IP for the desired domain
+#   - Ansible 2.14+ on the control machine
+
+- name: Set up Take Action Toolkit server
+  hosts: takeaction
+  become: true
+  vars:
+    # Override these in inventory.yml or on the command line
+    domain: "takeaction.example.org"
+    db_name: "takeaction_wp"
+    db_user: "takeaction"
+    db_password: "{{ vault_db_password | default('CHANGE_ME_BEFORE_DEPLOY') }}"
+    wp_admin_user: "admin"
+    wp_admin_email: "admin@{{ domain }}"
+    wp_admin_password: "{{ vault_wp_admin_password | default('CHANGE_ME_BEFORE_DEPLOY') }}"
+    wp_path: "/var/www/takeaction"
+    php_version: "8.3"
+    node_version: "20"
+
+  tasks:
+    # ── System packages ─────────────────────────────────────────
+    - name: Update apt cache
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install base packages
+      apt:
+        name:
+          - curl
+          - git
+          - unzip
+          - software-properties-common
+          - acl
+        state: present
+
+    # ── PHP ──────────────────────────────────────────────────────
+    - name: Add PHP PPA
+      apt_repository:
+        repo: "ppa:ondrej/php"
+        state: present
+
+    - name: Install PHP and extensions
+      apt:
+        name:
+          - "php{{ php_version }}-fpm"
+          - "php{{ php_version }}-mysql"
+          - "php{{ php_version }}-xml"
+          - "php{{ php_version }}-mbstring"
+          - "php{{ php_version }}-curl"
+          - "php{{ php_version }}-zip"
+          - "php{{ php_version }}-gd"
+          - "php{{ php_version }}-intl"
+          - "php{{ php_version }}-imagick"
+        state: present
+      notify: Restart PHP-FPM
+
+    - name: Configure PHP-FPM pool
+      lineinfile:
+        path: "/etc/php/{{ php_version }}/fpm/pool.d/www.conf"
+        regexp: "^{{ item.key }} ="
+        line: "{{ item.key }} = {{ item.value }}"
+      loop:
+        - { key: "pm.max_children", value: "20" }
+        - { key: "pm.start_servers", value: "4" }
+        - { key: "pm.min_spare_servers", value: "2" }
+        - { key: "pm.max_spare_servers", value: "6" }
+      notify: Restart PHP-FPM
+
+    # ── MariaDB ──────────────────────────────────────────────────
+    - name: Install MariaDB
+      apt:
+        name:
+          - mariadb-server
+          - python3-mysqldb
+        state: present
+
+    - name: Start and enable MariaDB
+      systemd:
+        name: mariadb
+        state: started
+        enabled: true
+
+    - name: Create WordPress database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+
+    - name: Create WordPress database user
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        priv: "{{ db_name }}.*:ALL"
+        host: "localhost"
+        state: present
+
+    # ── Caddy ────────────────────────────────────────────────────
+    - name: Install Caddy
+      block:
+        - name: Add Caddy GPG key
+          get_url:
+            url: https://dl.cloudsmith.io/public/caddy/stable/gpg.key
+            dest: /usr/share/keyrings/caddy-stable-archive-keyring.asc
+
+        - name: Add Caddy repo
+          apt_repository:
+            repo: "deb [signed-by=/usr/share/keyrings/caddy-stable-archive-keyring.asc] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main"
+            state: present
+            filename: caddy-stable
+
+        - name: Install Caddy package
+          apt:
+            name: caddy
+            state: present
+            update_cache: true
+
+    - name: Configure Caddy
+      copy:
+        dest: /etc/caddy/Caddyfile
+        content: |
+          {{ domain }} {
+              root * {{ wp_path }}
+              php_fastcgi unix//run/php/php{{ php_version }}-fpm.sock
+              file_server
+              encode gzip
+
+              @blocked {
+                  path /xmlrpc.php
+              }
+              respond @blocked 403
+          }
+      notify: Restart Caddy
+
+    # ── Node.js (for building plugin assets) ─────────────────────
+    - name: Install Node.js
+      block:
+        - name: Add NodeSource repo
+          shell: |
+            curl -fsSL https://deb.nodesource.com/setup_{{ node_version }}.x | bash -
+          args:
+            creates: /etc/apt/sources.list.d/nodesource.list
+
+        - name: Install Node.js package
+          apt:
+            name: nodejs
+            state: present
+
+    # ── WP-CLI ───────────────────────────────────────────────────
+    - name: Install WP-CLI
+      get_url:
+        url: https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+        dest: /usr/local/bin/wp
+        mode: "0755"
+
+    # ── WordPress ────────────────────────────────────────────────
+    - name: Create web directory
+      file:
+        path: "{{ wp_path }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"
+
+    - name: Download WordPress
+      command: wp core download --path={{ wp_path }}
+      become_user: www-data
+      args:
+        creates: "{{ wp_path }}/wp-login.php"
+
+    - name: Configure WordPress
+      command: >
+        wp config create
+          --path={{ wp_path }}
+          --dbname={{ db_name }}
+          --dbuser={{ db_user }}
+          --dbpass={{ db_password }}
+          --dbhost=localhost
+          --extra-php="define('WP_MEMORY_LIMIT', '256M');"
+      become_user: www-data
+      args:
+        creates: "{{ wp_path }}/wp-config.php"
+
+    - name: Install WordPress
+      command: >
+        wp core install
+          --path={{ wp_path }}
+          --url=https://{{ domain }}
+          --title="Take Action"
+          --admin_user={{ wp_admin_user }}
+          --admin_password={{ wp_admin_password }}
+          --admin_email={{ wp_admin_email }}
+          --skip-email
+      become_user: www-data
+      register: wp_install
+      changed_when: "'already installed' not in wp_install.stdout"
+
+    # ── Deploy Plugin & Theme ────────────────────────────────────
+    - name: Clone toolkit repo
+      git:
+        repo: "https://github.com/gvelez17/take-action-toolkit.git"
+        dest: "/opt/take-action-toolkit"
+        version: main
+        force: true
+
+    - name: Build plugin assets
+      command: npm ci && npm run build
+      args:
+        chdir: /opt/take-action-toolkit/plugin
+      environment:
+        NODE_ENV: production
+
+    - name: Deploy plugin to WordPress
+      synchronize:
+        src: /opt/take-action-toolkit/plugin/
+        dest: "{{ wp_path }}/wp-content/plugins/take-action-toolkit/"
+        delete: true
+        rsync_opts:
+          - "--exclude=node_modules"
+          - "--exclude=.git"
+      delegate_to: "{{ inventory_hostname }}"
+
+    - name: Deploy theme to WordPress
+      synchronize:
+        src: /opt/take-action-toolkit/theme/
+        dest: "{{ wp_path }}/wp-content/themes/take-action-theme/"
+        delete: true
+        rsync_opts:
+          - "--exclude=.git"
+      delegate_to: "{{ inventory_hostname }}"
+
+    - name: Set ownership
+      file:
+        path: "{{ wp_path }}/wp-content"
+        state: directory
+        owner: www-data
+        group: www-data
+        recurse: true
+
+    - name: Activate plugin
+      command: wp plugin activate take-action-toolkit --path={{ wp_path }}
+      become_user: www-data
+      register: plugin_activate
+      changed_when: "'already active' not in plugin_activate.stdout"
+
+    - name: Activate theme
+      command: wp theme activate take-action-theme --path={{ wp_path }}
+      become_user: www-data
+      register: theme_activate
+      changed_when: "'already active' not in theme_activate.stdout"
+
+    - name: Set permalink structure
+      command: wp rewrite structure '/%postname%/' --path={{ wp_path }}
+      become_user: www-data
+
+    - name: Flush rewrite rules
+      command: wp rewrite flush --path={{ wp_path }}
+      become_user: www-data
+
+    # ── Security Hardening ───────────────────────────────────────
+    - name: Remove default plugins
+      command: wp plugin delete {{ item }} --path={{ wp_path }}
+      become_user: www-data
+      loop:
+        - akismet
+        - hello
+      ignore_errors: true
+
+    - name: Disable file editing in admin
+      lineinfile:
+        path: "{{ wp_path }}/wp-config.php"
+        insertbefore: "That's all, stop editing"
+        line: "define('DISALLOW_FILE_EDIT', true);"
+        state: present
+
+    # ── Cron ─────────────────────────────────────────────────────
+    - name: Disable WP-Cron (use system cron instead)
+      lineinfile:
+        path: "{{ wp_path }}/wp-config.php"
+        insertbefore: "That's all, stop editing"
+        line: "define('DISABLE_WP_CRON', true);"
+        state: present
+
+    - name: Add system cron for WordPress
+      cron:
+        name: "WordPress cron"
+        minute: "*/5"
+        user: www-data
+        job: "cd {{ wp_path }} && php wp-cron.php > /dev/null 2>&1"
+
+  handlers:
+    - name: Restart PHP-FPM
+      systemd:
+        name: "php{{ php_version }}-fpm"
+        state: restarted
+
+    - name: Restart Caddy
+      systemd:
+        name: caddy
+        state: restarted

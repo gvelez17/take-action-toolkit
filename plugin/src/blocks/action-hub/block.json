@@ -1,0 +1,40 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "take-action/action-hub",
+	"version": "1.0.0",
+	"title": "Action Hub",
+	"category": "widgets",
+	"icon": "megaphone",
+	"description": "Displays action buttons for volunteer signup, donations, and newsletter.",
+	"keywords": [ "action", "volunteer", "donate", "newsletter", "signup" ],
+	"textdomain": "take-action-toolkit",
+	"supports": {
+		"html": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"background": true,
+			"text": true
+		}
+	},
+	"attributes": {
+		"showVolunteer": {
+			"type": "boolean",
+			"default": true
+		},
+		"showDonate": {
+			"type": "boolean",
+			"default": true
+		},
+		"showNewsletter": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php",
+	"style": "file:./style-index.css"
+}

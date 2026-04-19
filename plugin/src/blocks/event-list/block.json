@@ -1,0 +1,42 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "take-action/event-list",
+	"version": "1.0.0",
+	"title": "Event Calendar",
+	"category": "widgets",
+	"icon": "calendar-alt",
+	"description": "Displays upcoming events from a connected Google Calendar or iCal feed.",
+	"keywords": [ "events", "calendar", "activism", "schedule" ],
+	"textdomain": "take-action-toolkit",
+	"supports": {
+		"html": false,
+		"interactivity": true,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"attributes": {
+		"limit": {
+			"type": "number",
+			"default": 20
+		},
+		"showFilter": {
+			"type": "boolean",
+			"default": true
+		},
+		"showSubscribe": {
+			"type": "boolean",
+			"default": true
+		},
+		"showMap": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"viewScriptModule": "file:./view.js",
+	"render": "file:./render.php",
+	"style": "file:./style-index.css"
+}

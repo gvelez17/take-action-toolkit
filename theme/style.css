@@ -1,0 +1,353 @@
+/*
+Theme Name: Take Action Theme
+Theme URI: https://github.com/gvelez17/take-action-toolkit
+Description: A lightweight block theme for Take Action activism hubs. Designed to work with the Take Action Toolkit plugin.
+Version: 1.0.0
+Requires at least: 6.5
+Tested up to: 6.9
+Requires PHP: 8.0
+Author: LinkedTrust / What's Cookin'
+License: GPL-2.0-or-later
+Text Domain: take-action-theme
+Tags: activism, community, events, directory, block-theme, full-site-editing
+*/
+
+/* Base styles not covered by theme.json */
+
+.tat-event-list,
+.tat-org-directory,
+.tat-business-directory,
+.tat-action-hub {
+	max-width: var(--wp--style--global--wide-size, 1200px);
+	margin-inline: auto;
+}
+
+/* Event list */
+.tat-event-filters,
+.tat-org-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 24px;
+}
+
+.tat-filter-btn {
+	padding: 6px 16px;
+	border: 2px solid var(--wp--preset--color--primary, #dc2626);
+	border-radius: 999px;
+	background: transparent;
+	color: var(--wp--preset--color--primary, #dc2626);
+	font-size: 0.875rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.15s, color 0.15s;
+}
+
+.tat-filter-btn:hover,
+.tat-filter-btn.active {
+	background: var(--wp--preset--color--primary, #dc2626);
+	color: #fff;
+}
+
+.tat-subscribe-links {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 24px;
+	font-size: 0.875rem;
+}
+
+.tat-subscribe-label {
+	font-weight: 600;
+}
+
+.tat-subscribe-link {
+	color: var(--wp--preset--color--primary, #dc2626);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.tat-date-heading {
+	margin-top: 32px;
+	margin-bottom: 12px;
+	font-size: 1.125rem;
+	font-weight: 700;
+	color: var(--wp--preset--color--secondary, #1e3a5f);
+	border-bottom: 2px solid var(--wp--preset--color--primary, #dc2626);
+	padding-bottom: 4px;
+}
+
+.tat-event-card {
+	display: flex;
+	gap: 16px;
+	padding: 16px 0;
+	border-bottom: 1px solid #e5e7eb;
+}
+
+.tat-event-time {
+	min-width: 120px;
+	font-size: 0.875rem;
+	color: #6b7280;
+	flex-shrink: 0;
+}
+
+.tat-event-title {
+	margin: 0 0 4px 0;
+	font-size: 1.125rem;
+	line-height: 1.4;
+}
+
+.tat-event-title a {
+	color: var(--wp--preset--color--secondary, #1e3a5f);
+	text-decoration: none;
+}
+
+.tat-event-title a:hover {
+	text-decoration: underline;
+}
+
+.tat-event-type-badge {
+	display: inline-block;
+	font-size: 0.7rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	padding: 2px 8px;
+	border-radius: 999px;
+	margin-left: 8px;
+	vertical-align: middle;
+}
+
+.tat-type-in-person {
+	background: #dcfce7;
+	color: #166534;
+}
+
+.tat-type-virtual {
+	background: #dbeafe;
+	color: #1e40af;
+}
+
+.tat-type-hybrid {
+	background: #fef3c7;
+	color: #92400e;
+}
+
+.tat-event-location {
+	font-size: 0.875rem;
+	margin-bottom: 4px;
+}
+
+.tat-map-links {
+	margin-left: 8px;
+	font-size: 0.8rem;
+}
+
+.tat-map-links a {
+	color: var(--wp--preset--color--primary, #dc2626);
+	margin-right: 8px;
+}
+
+.tat-event-organizer {
+	font-size: 0.8rem;
+	color: #6b7280;
+	margin-bottom: 4px;
+}
+
+.tat-event-description {
+	font-size: 0.875rem;
+	margin-top: 8px;
+	color: #374151;
+}
+
+/* Organization & business grids */
+.tat-org-grid,
+.tat-business-grid {
+	display: grid;
+	grid-template-columns: repeat(var(--tat-columns, 2), 1fr);
+	gap: 24px;
+}
+
+@media (max-width: 768px) {
+	.tat-org-grid,
+	.tat-business-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.tat-event-card {
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.tat-event-time {
+		min-width: auto;
+	}
+}
+
+.tat-org-card,
+.tat-business-card {
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	padding: 20px;
+	background: #fff;
+	transition: box-shadow 0.15s;
+}
+
+.tat-org-card:hover,
+.tat-business-card:hover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.tat-org-logo img,
+.tat-business-logo img {
+	max-height: 64px;
+	width: auto;
+	margin-bottom: 12px;
+}
+
+.tat-org-name,
+.tat-business-name {
+	margin: 0 0 8px 0;
+	font-size: 1.125rem;
+}
+
+.tat-org-name a,
+.tat-business-name a {
+	color: var(--wp--preset--color--secondary, #1e3a5f);
+	text-decoration: none;
+}
+
+.tat-org-name a:hover,
+.tat-business-name a:hover {
+	text-decoration: underline;
+}
+
+.tat-org-description,
+.tat-business-description {
+	font-size: 0.875rem;
+	color: #374151;
+	margin-bottom: 12px;
+}
+
+.tat-org-contact,
+.tat-business-contact {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.tat-contact-link {
+	color: #6b7280;
+	transition: color 0.15s;
+}
+
+.tat-contact-link:hover {
+	color: var(--wp--preset--color--primary, #dc2626);
+}
+
+.tat-org-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.tat-tag {
+	font-size: 0.7rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: #f3f4f6;
+	color: #6b7280;
+}
+
+/* Action hub */
+.tat-action-hub {
+	text-align: center;
+}
+
+.tat-action-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.tat-action-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 28px;
+	border-radius: 8px;
+	font-weight: 700;
+	font-size: 1rem;
+	text-decoration: none;
+	transition: transform 0.1s, box-shadow 0.15s;
+}
+
+.tat-action-btn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tat-btn-volunteer {
+	background: var(--wp--preset--color--primary, #dc2626);
+	color: #fff;
+}
+
+.tat-btn-donate {
+	background: var(--wp--preset--color--secondary, #1e3a5f);
+	color: #fff;
+}
+
+.tat-btn-contact {
+	background: #fff;
+	color: var(--wp--preset--color--secondary, #1e3a5f);
+	border: 2px solid var(--wp--preset--color--secondary, #1e3a5f);
+}
+
+.tat-btn-newsletter {
+	background: #fff;
+	color: var(--wp--preset--color--primary, #dc2626);
+	border: 2px solid var(--wp--preset--color--primary, #dc2626);
+}
+
+.tat-newsletter-embed {
+	max-width: 500px;
+	margin: 0 auto;
+}
+
+/* Notices */
+.tat-notice {
+	padding: 24px;
+	text-align: center;
+	background: #f9fafb;
+	border: 1px dashed #d1d5db;
+	border-radius: 8px;
+	color: #6b7280;
+}
+
+.tat-notice a {
+	color: var(--wp--preset--color--primary, #dc2626);
+	font-weight: 600;
+}
+
+/* Editor placeholder */
+.tat-editor-placeholder {
+	text-align: center;
+	padding: 40px 20px;
+	background: #f9fafb;
+	border: 1px dashed #d1d5db;
+	border-radius: 8px;
+}
+
+.tat-editor-placeholder .dashicons {
+	color: var(--wp--preset--color--primary, #dc2626);
+}
+
+.tat-editor-meta {
+	color: #9ca3af;
+	font-size: 0.8rem;
+}

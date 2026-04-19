@@ -1,0 +1,16 @@
+{
+	"name": "take-action-toolkit",
+	"version": "1.0.0",
+	"description": "Take Action Toolkit WordPress plugin",
+	"private": true,
+	"scripts": {
+		"build": "wp-scripts build --experimental-modules --webpack-src-dir=src/blocks --output-path=build/blocks",
+		"start": "wp-scripts start --experimental-modules --webpack-src-dir=src/blocks --output-path=build/blocks",
+		"lint:js": "wp-scripts lint-js src/",
+		"lint:css": "wp-scripts lint-style src/",
+		"pot": "wp i18n make-pot . languages/take-action-toolkit.pot"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^30.0.0"
+	}
+}

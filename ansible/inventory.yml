@@ -1,0 +1,21 @@
+---
+# Inventory for Take Action Toolkit deployment
+#
+# Update the host IP and variables before running the playbook.
+# For passwords, use ansible-vault:
+#   ansible-vault encrypt_string 'your-password' --name 'vault_db_password'
+
+all:
+  hosts:
+    takeaction:
+      ansible_host: "10.0.0.XXX"  # <-- Replace with your VM IP
+      ansible_user: "root"         # <-- Or your SSH user with sudo
+      ansible_python_interpreter: /usr/bin/python3
+
+      # Site configuration
+      domain: "takeaction.example.org"  # <-- Replace with your domain
+      wp_admin_email: "admin@example.org"
+
+      # Secrets — use ansible-vault in production
+      # vault_db_password: "..."
+      # vault_wp_admin_password: "..."
